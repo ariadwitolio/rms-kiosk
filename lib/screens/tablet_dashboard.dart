@@ -10,63 +10,95 @@ class TabletDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final posProvider = Provider.of<PosProvider>(context);
+    
     return Row(
       children: [
-        // Sidebar Navigation
-        NavigationRail(
-          selectedIndex: 0,
-          onDestinationSelected: (index) {},
-          labelType: NavigationRailLabelType.all,
-          destinations: const [
-            NavigationRailDestination(
-              icon: Icon(Icons.dashboard_outlined),
-              selectedIcon: Icon(Icons.dashboard),
-              label: Text('Menu'),
-            ),
-            NavigationRailDestination(
-              icon: Icon(Icons.receipt_long_outlined),
-              selectedIcon: Icon(Icons.receipt_long),
-              label: Text('Orders'),
-            ),
-            NavigationRailDestination(
-              icon: Icon(Icons.settings_outlined),
-              selectedIcon: Icon(Icons.settings),
-              label: Text('Settings'),
-            ),
-          ],
-        ),
-        const VerticalDivider(thickness: 1, width: 1),
-        
-        // Main Content Area
-        Expanded(
-          flex: 3,
+        // Kiosk Category Rail (Vertical)
+        Container(
+          width: 120,
+          color: Colors.white,
           child: Column(
             children: [
-              const Padding(
-                padding: EdgeInsets.all(24.0),
-                child: Row(
-                  children: [
-                    Text(
-                      'Menu Selection',
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                    ),
-                    Spacer(),
-                    SizedBox(
-                      width: 300,
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: 'Search menu...',
-                          prefixIcon: Icon(Icons.search),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(12)),
-                          ),
+              const SizedBox(height: 24),
+              // Back/Home Button
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                onPressed: () => posProvider.setFlow(KioskFlow.welcome),
+                style: IconButton.styleFrom(
+                  padding: const EdgeInsets.all(20),
+                  backgroundColor: Colors.grey.shade100,
+                ),
+              ),
+              const SizedBox(height: 32),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: MenuCategory.values.length,
+                  itemBuilder: (context, index) {
+                    final category = MenuCategory.values[index];
+                    final isSelected = posProvider.selectedCategory == category;
+                    return InkWell(
+                      onTap: () => posProvider.setCategory(category),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
+                        decoration: BoxDecoration(
+                          border: isSelected 
+                            ? Border(right: BorderSide(color: Theme.of(context).primaryColor, width: 4))
+                            : null,
+                          color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.05) : null,
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              _getCategoryIcon(category),
+                              color: isSelected ? Theme.of(context).primaryColor : Colors.grey,
+                              size: 32,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _getCategoryName(category),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                color: isSelected ? Theme.of(context).primaryColor : Colors.grey,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+        
+        const VerticalDivider(thickness: 1, width: 1),
+        
+        // Main Menu Area
+        Expanded(
+          flex: 4,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _getCategoryName(posProvider.selectedCategory),
+                      style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w900),
+                    ),
+                    const Text(
+                      'Select your items to add to order',
+                      style: TextStyle(fontSize: 18, color: Colors.grey),
                     ),
                   ],
                 ),
               ),
-              const CategoryBar(),
               const Expanded(child: MenuGrid()),
             ],
           ),
@@ -74,12 +106,32 @@ class TabletDashboard extends StatelessWidget {
         
         const VerticalDivider(thickness: 1, width: 1),
         
-        // Cart Panel
+        // Kiosk Cart Panel
         const Expanded(
-          flex: 1,
+          flex: 2,
           child: CartPanel(),
         ),
       ],
     );
+  }
+
+  IconData _getCategoryIcon(MenuCategory category) {
+    switch (category) {
+      case MenuCategory.all: return Icons.grid_view_rounded;
+      case MenuCategory.appetizers: return Icons.restaurant_rounded;
+      case MenuCategory.mainCourse: return Icons.lunch_dining_rounded;
+      case MenuCategory.desserts: return Icons.icecream_rounded;
+      case MenuCategory.beverages: return Icons.local_bar_rounded;
+    }
+  }
+
+  String _getCategoryName(MenuCategory category) {
+    switch (category) {
+      case MenuCategory.all: return 'All Items';
+      case MenuCategory.appetizers: return 'Appetizers';
+      case MenuCategory.mainCourse: return 'Main Course';
+      case MenuCategory.desserts: return 'Desserts';
+      case MenuCategory.beverages: return 'Beverages';
+    }
   }
 }

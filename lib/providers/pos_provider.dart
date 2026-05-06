@@ -2,7 +2,17 @@ import 'package:flutter/material.dart';
 import '../models/menu_item.dart';
 import '../models/order_item.dart';
 
+enum KioskFlow { welcome, menu, checkout, confirmation }
+
 class PosProvider with ChangeNotifier {
+  KioskFlow _currentFlow = KioskFlow.welcome;
+  KioskFlow get currentFlow => _currentFlow;
+
+  void setFlow(KioskFlow flow) {
+    _currentFlow = flow;
+    notifyListeners();
+  }
+  
   final List<MenuItem> _menuItems = [
     MenuItem(
       id: '1',
@@ -73,12 +83,12 @@ class PosProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void addToCart(MenuItem item) {
+  void addToCart(MenuItem item, {int quantity = 1, String? notes}) {
     final index = _cart.indexWhere((element) => element.item.id == item.id);
-    if (index >= 0) {
-      _cart[index].quantity++;
+    if (index >= 0 && notes == null) {
+      _cart[index].quantity += quantity;
     } else {
-      _cart.add(OrderItem(item: item));
+      _cart.add(OrderItem(item: item, quantity: quantity, notes: notes));
     }
     notifyListeners();
   }
