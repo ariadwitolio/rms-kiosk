@@ -4,6 +4,7 @@ import '../providers/pos_provider.dart';
 import '../widgets/menu_grid.dart';
 import '../widgets/cart_panel.dart';
 import '../widgets/category_bar.dart';
+import '../models/menu_item.dart';
 
 class TabletDashboard extends StatelessWidget {
   const TabletDashboard({super.key});
