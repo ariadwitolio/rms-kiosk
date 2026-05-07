@@ -19,9 +19,9 @@ class HomeScreen extends StatelessWidget {
       case KioskFlow.menu:
         return const Scaffold(body: TabletDashboard());
       case KioskFlow.checkout:
-        return const CheckoutScreen();
+        return CheckoutScreen();
       case KioskFlow.confirmation:
-        return const OrderConfirmationScreen();
+        return OrderConfirmationScreen();
       default:
         return const WelcomeScreen();
     }

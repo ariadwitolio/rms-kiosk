@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../providers/pos_provider.dart';
 import '../widgets/menu_grid.dart';
 import '../widgets/cart_panel.dart';
-import '../widgets/category_bar.dart';
+import '../widgets/kiosk_header.dart';
 import '../models/menu_item.dart';
+import '../models/category.dart';
 
 class TabletDashboard extends StatelessWidget {
   const TabletDashboard({super.key});
@@ -12,127 +14,181 @@ class TabletDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final posProvider = Provider.of<PosProvider>(context);
-    
-    return Row(
+
+    return Column(
       children: [
-        // Kiosk Category Rail (Vertical)
-        Container(
-          width: 120,
-          color: Colors.white,
-          child: Column(
+        KioskHeader(
+          title: 'RMS Kiosk',
+          onBack: () => posProvider.setFlow(KioskFlow.welcome),
+          onNext: posProvider.cart.isNotEmpty ? () => posProvider.setFlow(KioskFlow.checkout) : null,
+          currentStep: 0,
+        ),
+        Expanded(
+          child: Row(
             children: [
-              const SizedBox(height: 24),
-              // Back/Home Button
-              IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                onPressed: () => posProvider.setFlow(KioskFlow.welcome),
-                style: IconButton.styleFrom(
-                  padding: const EdgeInsets.all(20),
-                  backgroundColor: Colors.grey.shade100,
-                ),
-              ),
-              const SizedBox(height: 32),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: MenuCategory.values.length,
-                  itemBuilder: (context, index) {
-                    final category = MenuCategory.values[index];
-                    final isSelected = posProvider.selectedCategory == category;
-                    return InkWell(
-                      onTap: () => posProvider.setCategory(category),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
+              // LEFT CATEGORY SIDEBAR
+              Container(
+                width: 200, // Increased width for better alignment
+                color: Colors.white,
+                child: Column(
+                  children: [
+                    // Nested Header (Back + Category Name)
+                    if (posProvider.canGoBackCategory)
+                      Container(
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          border: isSelected 
-                            ? Border(right: BorderSide(color: Theme.of(context).primaryColor, width: 4))
-                            : null,
-                          color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.05) : null,
+                          border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
                         ),
-                        child: Column(
+                        child: Row(
                           children: [
-                            Icon(
-                              _getCategoryIcon(category),
-                              color: isSelected ? Theme.of(context).primaryColor : Colors.grey,
-                              size: 32,
+                            IconButton(
+                              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                              onPressed: () => posProvider.goBackCategory(),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _getCategoryName(category),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                color: isSelected ? Theme.of(context).primaryColor : Colors.grey,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                posProvider.selectedCategory.name,
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
                         ),
                       ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-        
-        const VerticalDivider(thickness: 1, width: 1),
-        
-        // Main Menu Area
-        Expanded(
-          flex: 4,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _getCategoryName(posProvider.selectedCategory),
-                      style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w900),
-                    ),
-                    const Text(
-                      'Select your items to add to order',
-                      style: TextStyle(fontSize: 18, color: Colors.grey),
+
+                    Expanded(
+                      child: ListView(
+                        padding: EdgeInsets.zero,
+                        children: [
+                          // "All [Category]" item when nested
+                          if (posProvider.canGoBackCategory)
+                            _buildCategoryItem(
+                              context,
+                              Category(
+                                id: posProvider.selectedCategory.id,
+                                name: 'All ${posProvider.selectedCategory.name}',
+                                sheerColor: posProvider.selectedCategory.sheerColor,
+                                solidColor: posProvider.selectedCategory.solidColor,
+                              ),
+                              isSelected: true, // It's currently selected if we are here?
+                              onTap: () {}, // Already selected
+                            ),
+
+                          ...posProvider.currentCategoryPanel.map((category) {
+                            final isSelected = posProvider.selectedCategory.id == category.id;
+                            final hasSub = category.subCategories != null && category.subCategories!.isNotEmpty;
+
+                            return _buildCategoryItem(
+                              context,
+                              category,
+                              isSelected: isSelected,
+                              hasChevron: hasSub,
+                              onTap: () => posProvider.setCategory(category),
+                            );
+                          }),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-              const Expanded(child: MenuGrid()),
+
+              const VerticalDivider(thickness: 1, width: 1),
+
+              // CENTER MENU AREA
+              Expanded(
+                flex: 4,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Search Bar Section
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      color: Colors.grey.shade50,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10),
+                          ],
+                        ),
+                        child: const TextField(
+                          decoration: InputDecoration(
+                            icon: Icon(Icons.search, color: Colors.grey),
+                            hintText: 'Search Menu...',
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const Expanded(
+                      child: MenuGrid(),
+                    ),
+                  ],
+                ),
+              ),
+
+              const VerticalDivider(thickness: 1, width: 1),
+
+              // RIGHT CART PANEL
+              const Expanded(
+                flex: 2,
+                child: CartPanel(),
+              ),
             ],
           ),
-        ),
-        
-        const VerticalDivider(thickness: 1, width: 1),
-        
-        // Kiosk Cart Panel
-        const Expanded(
-          flex: 2,
-          child: CartPanel(),
         ),
       ],
     );
   }
 
-  IconData _getCategoryIcon(MenuCategory category) {
-    switch (category) {
-      case MenuCategory.all: return Icons.grid_view_rounded;
-      case MenuCategory.appetizers: return Icons.restaurant_rounded;
-      case MenuCategory.mainCourse: return Icons.lunch_dining_rounded;
-      case MenuCategory.desserts: return Icons.icecream_rounded;
-      case MenuCategory.beverages: return Icons.local_bar_rounded;
-    }
-  }
-
-  String _getCategoryName(MenuCategory category) {
-    switch (category) {
-      case MenuCategory.all: return 'All Items';
-      case MenuCategory.appetizers: return 'Appetizers';
-      case MenuCategory.mainCourse: return 'Main Course';
-      case MenuCategory.desserts: return 'Desserts';
-      case MenuCategory.beverages: return 'Beverages';
-    }
+  Widget _buildCategoryItem(
+    BuildContext context,
+    Category category, {
+    required bool isSelected,
+    bool hasChevron = false,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        height: 80,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: category.sheerColor,
+          border: isSelected
+              ? Border(
+                  left: BorderSide(
+                    color: category.solidColor,
+                    width: 6,
+                  ),
+                )
+              : null,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                category.name,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                  color: isSelected ? category.solidColor : Colors.black87,
+                ),
+              ),
+            ),
+            if (hasChevron)
+              Icon(Icons.chevron_right_rounded, color: isSelected ? category.solidColor : Colors.grey),
+          ],
+        ),
+      ),
+    );
   }
 }

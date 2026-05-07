@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/pos_provider.dart';
 import '../models/menu_item.dart';
+import '../models/category.dart';
 import '../widgets/responsive_layout.dart';
 import 'product_detail_dialog.dart';
 
@@ -16,8 +17,8 @@ class MenuGrid extends StatelessWidget {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: isMobile ? 2 : 4, // More columns for Kiosk tablet
-        childAspectRatio: 0.75,
+        crossAxisCount: isMobile ? 2 : 4,
+        childAspectRatio: 0.68,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
       ),
@@ -29,6 +30,7 @@ class MenuGrid extends StatelessWidget {
     );
   }
 }
+
 class MenuItemCard extends StatelessWidget {
   final MenuItem item;
 
@@ -36,6 +38,10 @@ class MenuItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final posProvider = Provider.of<PosProvider>(context, listen: false);
+    final rootCategory = posProvider.getRootCategory(item.categoryId);
+    final cardColor = rootCategory.solidColor;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -52,10 +58,22 @@ class MenuItemCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         child: InkWell(
           onTap: () {
-            showDialog(
-              context: context,
-              builder: (context) => ProductDetailDialog(item: item),
-            );
+            if (item.modifiers.isEmpty) {
+              posProvider.addToCart(item);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('${item.name} added to cart'),
+                  duration: const Duration(seconds: 1),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              );
+            } else {
+              showDialog(
+                context: context,
+                builder: (context) => ProductDetailDialog(item: item),
+              );
+            }
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,7 +108,8 @@ class MenuItemCard extends StatelessWidget {
               ),
               Expanded(
                 flex: 2,
-                child: Padding(
+                child: Container(
+                  color: rootCategory.sheerColor,
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,7 +133,7 @@ class MenuItemCard extends StatelessWidget {
                             item.description,
                             style: TextStyle(
                               fontSize: 13,
-                              color: Colors.grey.shade500,
+                              color: Colors.grey.shade700,
                               height: 1.3,
                             ),
                             maxLines: 2,
@@ -130,13 +149,13 @@ class MenuItemCard extends StatelessWidget {
                             style: TextStyle(
                               fontWeight: FontWeight.w900,
                               fontSize: 20,
-                              color: Theme.of(context).primaryColor,
+                              color: rootCategory.solidColor,
                             ),
                           ),
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).primaryColor,
+                              color: rootCategory.solidColor,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Icon(Icons.add_rounded, color: Colors.white, size: 24),

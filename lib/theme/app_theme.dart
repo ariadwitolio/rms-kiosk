@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  static const primaryColor = Color(0xFF4F46E5); // Modern Indigo
+  static const primaryColor = Color(0xFF006BFF); // Brand Primary Color
   static const secondaryColor = Color(0xFFEC4899); // Vibrant Pink
   static const backgroundColor = Color(0xFFF1F5F9); // Lighter slate
   static const cardColor = Colors.white;

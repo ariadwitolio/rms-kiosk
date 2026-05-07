@@ -47,67 +47,89 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey.shade50,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(40),
-              decoration: BoxDecoration(
-                color: Colors.green.shade50,
-                shape: BoxShape.circle,
+        child: Container(
+          width: 600,
+          padding: const EdgeInsets.all(60),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(32),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(40),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check_circle_rounded,
+                  size: 100,
+                  color: Colors.green,
+                ),
               ),
-              child: const Icon(
-                Icons.check_circle_rounded,
-                size: 120,
-                color: Colors.green,
+              const SizedBox(height: 40),
+              const Text(
+                'Payment Successful!',
+                style: TextStyle(fontSize: 36, fontWeight: FontWeight.w900),
               ),
-            ),
-            const SizedBox(height: 40),
-            const Text(
-              'Payment Successful!',
-              style: TextStyle(fontSize: 48, fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Your order has been sent to the kitchen.',
-              style: TextStyle(fontSize: 24, color: Colors.grey),
-            ),
-            const SizedBox(height: 60),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(24),
+              const SizedBox(height: 16),
+              const Text(
+                'Your order has been sent to the kitchen.',
+                style: TextStyle(fontSize: 18, color: Colors.grey),
+                textAlign: TextAlign.center,
               ),
-              child: Column(
-                children: [
-                  const Text(
-                    'Your Order Number',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
+              const SizedBox(height: 40),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: const Column(
+                  children: [
+                    Text(
+                      'Your Order Number',
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '#1254',
+                      style: TextStyle(fontSize: 48, fontWeight: FontWeight.w900, letterSpacing: 4),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 60),
+              const Text(
+                'Please take your receipt below',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 40),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _goToWelcome,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    '#1254',
-                    style: TextStyle(fontSize: 64, fontWeight: FontWeight.w900, letterSpacing: 4),
+                  child: Text(
+                    'Back to Home ($_secondsRemaining)',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                ],
+                ),
               ),
-            ),
-            const SizedBox(height: 80),
-            const Text(
-              'Please take your receipt below',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 40),
-            TextButton(
-              onPressed: _goToWelcome,
-              child: Text(
-                'Back to Home ($_secondsRemaining)',
-                style: const TextStyle(fontSize: 18),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
